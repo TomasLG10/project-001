@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<title>🎂 Calculadora d'aniversari</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    text-align:center;
+    background:#0f172a;
+    color:white;
+    padding:40px;
+}
+
+h1{
+    color:#facc15;
+}
+
+.contador{
+    font-size:28px;
+    margin-top:30px;
+}
+
+.numero{
+    font-size:40px;
+    font-weight:bold;
+    color:#22c55e;
+}
+
+.felicitat{
+    font-size:30px;
+    margin-top:40px;
+    color:#f472b6;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎂 Calculadora d'aniversari 🎂</h1>
+<p>Aquest programa calcula quant falta pel teu proper aniversari.</p>
+
+<div class="contador" id="contador"></div>
+<div class="felicitat" id="felicitat"></div>
+
+<script>
+
+const dia_naix = 12;
+const mes_naix = 1;
+const any_naix = 1976;
+
+function actualitzar(){
+
+const ara = new Date();
+let proper = new Date(ara.getFullYear(), mes_naix-1, dia_naix);
+
+if(ara > proper){
+    proper = new Date(ara.getFullYear()+1, mes_naix-1, dia_naix);
+}
+
+const diferencia = proper - ara;
+
+const segons = Math.floor(diferencia/1000) % 60;
+const minuts = Math.floor(diferencia/60000) % 60;
+const hores = Math.floor(diferencia/3600000) % 24;
+const dies = Math.floor(diferencia/86400000);
+
+document.getElementById("contador").innerHTML =
+`
+<span class="numero">${dies}</span> dies
+<span class="numero">${hores}</span> hores
+<span class="numero">${minuts}</span> minuts
+<span class="numero">${segons}</span> segons
+`;
+
+if(ara.getDate() === dia_naix && (ara.getMonth()+1) === mes_naix){
+
+let edat = ara.getFullYear() - any_naix;
+
+document.getElementById("felicitat").innerHTML =
+`🎉 MOLTÍSSIMES FELICITATS MAMA! 🎉 <br>
+Avui fas ${edat} anys! 🎂`;
+
+}
+
+}
+
+setInterval(actualitzar,1000);
+actualitzar();
+
+</script>
+
+</body>
+</html>
