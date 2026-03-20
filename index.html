@@ -33,6 +33,13 @@ h1{
     margin-top:40px;
     color:#f472b6;
 }
+
+/* Imagen */
+img{
+    margin-top:30px;
+    width:200px;
+    border-radius:15px;
+}
 </style>
 </head>
 
@@ -40,6 +47,9 @@ h1{
 
 <h1>🎂 Calculadora d'aniversari 🎂</h1>
 <p>Aquest programa calcula quant falta pel teu proper aniversari.</p>
+
+<!-- Imagen -->
+<img src="mama.jpg" alt="Mama">
 
 <div class="contador" id="contador"></div>
 <div class="felicitat" id="felicitat"></div>
@@ -49,6 +59,10 @@ h1{
 const dia_naix = 12;
 const mes_naix = 1;
 const any_naix = 1976;
+
+function format(num){
+    return num.toString().padStart(2,'0');
+}
 
 function actualitzar(){
 
@@ -69,14 +83,18 @@ const dies = Math.floor(diferencia/86400000);
 document.getElementById("contador").innerHTML =
 `
 <span class="numero">${dies}</span> dies
-<span class="numero">${hores}</span> hores
-<span class="numero">${minuts}</span> minuts
-<span class="numero">${segons}</span> segons
+<span class="numero">${format(hores)}</span> hores
+<span class="numero">${format(minuts)}</span> minuts
+<span class="numero">${format(segons)}</span> segons
 `;
 
 if(ara.getDate() === dia_naix && (ara.getMonth()+1) === mes_naix){
 
 let edat = ara.getFullYear() - any_naix;
+
+// Ajuste de edad correcto
+let cumple_any = new Date(ara.getFullYear(), mes_naix-1, dia_naix);
+if(ara < cumple_any) edat--;
 
 document.getElementById("felicitat").innerHTML =
 `🎉 MOLTÍSSIMES FELICITATS MAMA! 🎉 <br>
