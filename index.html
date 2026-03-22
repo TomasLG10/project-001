@@ -2,109 +2,297 @@
 <html lang="ca">
 <head>
 <meta charset="UTF-8">
-<title>🎂 Calculadora d'aniversari</title>
+<title>Calculadora d'aniversari</title>
 
 <style>
 body{
     font-family: Arial, sans-serif;
     text-align:center;
-    background:#0f172a;
-    color:white;
+    background:#dbeafe;
+    color:#31557f;
     padding:40px;
+    position:relative;
+    overflow-x:hidden;
+    overflow-y:auto;
+}
+
+.confetti-layer{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    opacity:0;
+    transition:opacity 0.4s ease;
+    overflow:hidden;
+}
+
+.confetti{
+    position:absolute;
+    top:-12vh;
+    width:9px;
+    height:20px;
+    border-radius:999px;
+    opacity:0.85;
+    animation-name:confettiFall;
+    animation-timing-function:linear;
+    animation-iteration-count:infinite;
+}
+
+.confetti:nth-child(3n){
+    width:8px;
+    height:14px;
+    border-radius:4px;
+}
+
+.confetti:nth-child(4n){
+    width:10px;
+    height:10px;
+    border-radius:50%;
+}
+
+body.aniversari .confetti-layer{
+    opacity:1;
+}
+
+@keyframes confettiFall{
+    0%{
+        transform:translate3d(0, -10vh, 0) rotate(0deg);
+    }
+    100%{
+        transform:translate3d(0, 125vh, 0) rotate(540deg);
+    }
 }
 
 h1{
-    color:#facc15;
+    color:#1e3a5f;
 }
 
 .contador{
     font-size:28px;
     margin-top:30px;
+    color:#4b6b94;
 }
 
 .numero{
     font-size:40px;
     font-weight:bold;
-    color:#22c55e;
+    color:#153e75;
+}
+
+.unitat{
+    color:#5f7ea5;
 }
 
 .felicitat{
     font-size:30px;
     margin-top:40px;
-    color:#f472b6;
+    color:#2b5c96;
+    font-weight:bold;
+    position:relative;
+    z-index:1;
 }
 
-/* Imagen */
+.vida{
+    margin:40px auto 0;
+    max-width:520px;
+    padding:24px;
+    border-radius:18px;
+    background:rgba(255,255,255,0.6);
+    color:#45658d;
+}
+
+.vida h2{
+    margin:0 0 10px;
+    color:#214c84;
+}
+
+.selector{
+    margin-top:16px;
+}
+
+.selector select{
+    margin-left:10px;
+    padding:8px 12px;
+    border-radius:10px;
+    border:1px solid #9db9db;
+    font-size:16px;
+    background:#eff6ff;
+    color:#1f497d;
+}
+
+.valor-vida{
+    margin-top:18px;
+    font-size:24px;
+}
+
 img{
     margin-top:30px;
     width:200px;
     border-radius:15px;
+    position:relative;
+    z-index:1;
+}
+
+.contador,
+.vida,
+h1,
+body > p{
+    position:relative;
+    z-index:1;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🎂 Calculadora d'aniversari 🎂</h1>
+<div class="confetti-layer" id="confettiLayer"></div>
+
+<h1>Calculadora d'aniversari</h1>
 <p>Aquest programa calcula quant falta pel teu proper aniversari.</p>
 
-<!-- Imagen -->
 <img src="mama.jpg" alt="Mama">
 
 <div class="contador" id="contador"></div>
 <div class="felicitat" id="felicitat"></div>
+
+<div class="vida">
+    <h2>Temps de vida</h2>
+    <p>Tria en quina unitat vols veure el temps viscut total.</p>
+    <div class="selector">
+        <label for="unitatVida">Mostrar en</label>
+        <select id="unitatVida">
+            <option value="years">anys</option>
+            <option value="months">mesos</option>
+            <option value="weeks">setmanes</option>
+            <option value="days">dies</option>
+            <option value="hours">hores</option>
+            <option value="minutes">minuts</option>
+            <option value="seconds">segons</option>
+        </select>
+    </div>
+    <div class="valor-vida" id="tempsVida"></div>
+</div>
 
 <script>
 
 const dia_naix = 12;
 const mes_naix = 1;
 const any_naix = 1976;
+const diesTestingAniversari = [
+    { dia: 22, mes: 3 },
+    { dia: 28, mes: 3 }
+];
+const clauUnitatVida = "unitatVidaSeleccionada";
+const dataNaixement = new Date(any_naix, mes_naix - 1, dia_naix);
+const colorsConfetti = ["#ef4444", "#f59e0b", "#facc15", "#22c55e", "#3b82f6", "#a855f7", "#ec4899"];
+const unitatsVida = {
+    years: { etiqueta: "anys", ms: 365.2425 * 24 * 60 * 60 * 1000 },
+    months: { etiqueta: "mesos", ms: (365.2425 / 12) * 24 * 60 * 60 * 1000 },
+    weeks: { etiqueta: "setmanes", ms: 7 * 24 * 60 * 60 * 1000 },
+    days: { etiqueta: "dies", ms: 24 * 60 * 60 * 1000 },
+    hours: { etiqueta: "hores", ms: 60 * 60 * 1000 },
+    minutes: { etiqueta: "minuts", ms: 60 * 1000 },
+    seconds: { etiqueta: "segons", ms: 1000 }
+};
 
 function format(num){
-    return num.toString().padStart(2,'0');
+    return num.toString();
+}
+
+function formatVida(valor, unitat){
+    return new Intl.NumberFormat("ca-ES", {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(Math.floor(valor));
+}
+
+function carregarUnitatVida(){
+    const unitatGuardada = localStorage.getItem(clauUnitatVida);
+
+    if(unitatGuardada && unitatsVida[unitatGuardada]){
+        document.getElementById("unitatVida").value = unitatGuardada;
+    }
+}
+
+function esDiaTestingAniversari(data){
+    return diesTestingAniversari.some(function(diaTesting){
+        return data.getDate() === diaTesting.dia && (data.getMonth() + 1) === diaTesting.mes;
+    });
+}
+
+function prepararConfetti(){
+    const layer = document.getElementById("confettiLayer");
+
+    if(layer.children.length > 0){
+        return;
+    }
+
+    for(let i = 0; i < 36; i++){
+        const pieza = document.createElement("span");
+        pieza.className = "confetti";
+        pieza.style.left = `${Math.random() * 100}%`;
+        pieza.style.backgroundColor = colorsConfetti[i % colorsConfetti.length];
+        pieza.style.animationDuration = `${6 + Math.random() * 5}s`;
+        pieza.style.animationDelay = `${Math.random() * 4}s`;
+        pieza.style.transform = `translateY(-10vh) rotate(${Math.random() * 360}deg)`;
+        layer.appendChild(pieza);
+    }
 }
 
 function actualitzar(){
+    const ara = new Date();
+    let proper = new Date(ara.getFullYear(), mes_naix - 1, dia_naix);
 
-const ara = new Date();
-let proper = new Date(ara.getFullYear(), mes_naix-1, dia_naix);
+    if(ara > proper){
+        proper = new Date(ara.getFullYear() + 1, mes_naix - 1, dia_naix);
+    }
 
-if(ara > proper){
-    proper = new Date(ara.getFullYear()+1, mes_naix-1, dia_naix);
+    const diferencia = proper - ara;
+    const segons = Math.floor(diferencia / 1000) % 60;
+    const minuts = Math.floor(diferencia / 60000) % 60;
+    const hores = Math.floor(diferencia / 3600000) % 24;
+    const dies = Math.floor(diferencia / 86400000);
+
+    document.getElementById("contador").innerHTML =
+    `
+    <span class="numero">${dies}</span> <span class="unitat">dies</span>
+    <span class="numero">${format(hores)}</span> <span class="unitat">hores</span>
+    <span class="numero">${format(minuts)}</span> <span class="unitat">minuts</span>
+    <span class="numero">${format(segons)}</span> <span class="unitat">segons</span>
+    `;
+
+    const unitatSeleccionada = document.getElementById("unitatVida").value;
+    const tempsViscutMs = ara - dataNaixement;
+    const valorVida = tempsViscutMs / unitatsVida[unitatSeleccionada].ms;
+    const esAniversariReal = ara.getDate() === dia_naix && (ara.getMonth() + 1) === mes_naix;
+    const esAniversariTesting = esDiaTestingAniversari(ara);
+
+    document.getElementById("tempsVida").innerHTML =
+    `<span class="numero">${formatVida(valorVida, unitatSeleccionada)}</span> <span class="unitat">${unitatsVida[unitatSeleccionada].etiqueta}</span>`;
+
+    if(esAniversariReal || esAniversariTesting){
+        let edat = ara.getFullYear() - any_naix;
+        const cumpleAny = new Date(ara.getFullYear(), mes_naix - 1, dia_naix);
+
+        if(ara < cumpleAny) edat--;
+
+        document.body.classList.add("aniversari");
+        document.getElementById("felicitat").innerHTML =
+        `&#127881; <strong>MOLTISSIMES FELICITATS MAMA!</strong> &#127874;<br><strong>Avui fas ${edat} anys!</strong> &#129395;`;
+    } else {
+        document.body.classList.remove("aniversari");
+        document.getElementById("felicitat").innerHTML = "";
+    }
 }
 
-const diferencia = proper - ara;
+carregarUnitatVida();
+prepararConfetti();
 
-const segons = Math.floor(diferencia/1000) % 60;
-const minuts = Math.floor(diferencia/60000) % 60;
-const hores = Math.floor(diferencia/3600000) % 24;
-const dies = Math.floor(diferencia/86400000);
+document.getElementById("unitatVida").addEventListener("change", function(){
+    localStorage.setItem(clauUnitatVida, this.value);
+    actualitzar();
+});
 
-document.getElementById("contador").innerHTML =
-`
-<span class="numero">${dies}</span> dies
-<span class="numero">${format(hores)}</span> hores
-<span class="numero">${format(minuts)}</span> minuts
-<span class="numero">${format(segons)}</span> segons
-`;
-
-if(ara.getDate() === dia_naix && (ara.getMonth()+1) === mes_naix){
-
-let edat = ara.getFullYear() - any_naix;
-
-// Ajuste de edad correcto
-let cumple_any = new Date(ara.getFullYear(), mes_naix-1, dia_naix);
-if(ara < cumple_any) edat--;
-
-document.getElementById("felicitat").innerHTML =
-`🎉 MOLTÍSSIMES FELICITATS MAMA! 🎉 <br>
-Avui fas ${edat} anys! 🎂`;
-
-}
-
-}
-
-setInterval(actualitzar,1000);
+setInterval(actualitzar, 1000);
 actualitzar();
 
 </script>
