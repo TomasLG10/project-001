@@ -224,14 +224,14 @@ body > p{
 </label>
 
 <h1>Calculadora d'aniversari</h1>
-<p>Aquest programa calcula quant falta pel teu proper aniversari.</p>
+<p>Aquest programa calcula quant falta pel teu proper aniversari, i si es el dia del teu cumple, reps una felicitació!</p>
 
 <div class="contador" id="contador"></div>
 <div class="felicitat" id="felicitat"></div>
 
 <div class="vida">
     <h2>Temps de vida</h2>
-    <p>Tria en quina unitat vols veure el temps viscut total.</p>
+    <p>Tria en quines unitats vols veure el temps que has viscut en total.</p>
     <div class="selector">
         <label for="unitatVida">Mostrar en</label>
         <select id="unitatVida">
@@ -248,7 +248,7 @@ body > p{
 </div>
 
 <div class="foto-grid">
-    <img src="mama.jpg" alt="Mama 1">
+    <img src="mama1.jpg" alt="Mama 1">
     <img src="mama2.jpg" alt="Mama 2">
     <img src="mama3.jpg" alt="Mama 3">
     <img src="mama4.jpg" alt="Mama 4">
@@ -374,7 +374,7 @@ function actualitzar(){
         document.body.classList.add("aniversari");
         document.getElementById("contador").innerHTML = "";
         document.getElementById("felicitat").innerHTML =
-        `&#127881; <strong>MOLTISSIMES FELICITATS MAMA!</strong> &#127874;<br><strong>Avui fas ${edat} anys!</strong> &#129395;<span class="petit">Gaudeix molt d'aquest aniversari tan especial.</span>`;
+        `&#127881; <strong>MOLTISSIMES FELICITATS MAMA!</strong> &#127874;<br><strong>Avui fas ${edat} anys!</strong> &#129395;<span class="petit">Gaudeix molt d'aquest dia tant especial mama guapa!</span>`;
     } else {
         document.getElementById("contador").innerHTML =
         `
