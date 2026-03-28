@@ -16,6 +16,60 @@ body{
     overflow-y:auto;
 }
 
+.mode-switch{
+    position:fixed;
+    top:16px;
+    left:16px;
+    z-index:2;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 12px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.75);
+    color:#1f497d;
+    font-size:14px;
+    font-weight:bold;
+    backdrop-filter:blur(3px);
+}
+
+.mode-switch input{
+    position:absolute;
+    opacity:0;
+    width:0;
+    height:0;
+}
+
+.slider{
+    width:44px;
+    height:24px;
+    border-radius:999px;
+    background:#a7c0de;
+    position:relative;
+    cursor:pointer;
+    transition:background 0.25s ease;
+}
+
+.slider::before{
+    content:"";
+    position:absolute;
+    top:3px;
+    left:3px;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    background:#ffffff;
+    transition:transform 0.25s ease;
+}
+
+.mode-switch input:checked + .slider{
+    background:#3b82f6;
+}
+
+.mode-switch input:checked + .slider::before{
+    transform:translateX(20px);
+}
+
 .confetti-layer{
     position:fixed;
     inset:0;
@@ -91,6 +145,14 @@ h1{
     z-index:1;
 }
 
+.felicitat .petit{
+    display:block;
+    margin-top:10px;
+    font-size:20px;
+    font-weight:normal;
+    color:#5f7ea5;
+}
+
 .vida{
     margin:40px auto 0;
     max-width:520px;
@@ -124,12 +186,22 @@ h1{
     font-size:24px;
 }
 
-img{
-    margin-top:30px;
-    width:200px;
-    border-radius:15px;
+.foto-grid{
+    margin:30px auto 0;
+    max-width:520px;
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:14px;
     position:relative;
     z-index:1;
+}
+
+.foto-grid img{
+    width:100%;
+    aspect-ratio:1 / 1;
+    object-fit:cover;
+    border-radius:15px;
+    display:block;
 }
 
 .contador,
@@ -145,11 +217,14 @@ body > p{
 <body>
 
 <div class="confetti-layer" id="confettiLayer"></div>
+<label class="mode-switch" for="modeAniversari">
+    <span>Mode aniversari</span>
+    <input type="checkbox" id="modeAniversari">
+    <span class="slider"></span>
+</label>
 
 <h1>Calculadora d'aniversari</h1>
 <p>Aquest programa calcula quant falta pel teu proper aniversari.</p>
-
-<img src="mama.jpg" alt="Mama">
 
 <div class="contador" id="contador"></div>
 <div class="felicitat" id="felicitat"></div>
@@ -172,16 +247,24 @@ body > p{
     <div class="valor-vida" id="tempsVida"></div>
 </div>
 
+<div class="foto-grid">
+    <img src="mama.jpg" alt="Mama 1">
+    <img src="mama2.jpg" alt="Mama 2">
+    <img src="mama3.jpg" alt="Mama 3">
+    <img src="mama4.jpg" alt="Mama 4">
+</div>
+
 <script>
 
 const dia_naix = 12;
 const mes_naix = 1;
 const any_naix = 1976;
 const diesTestingAniversari = [
-    { dia: 22, mes: 3 },
-    { dia: 28, mes: 3 }
+    { dia: 27, mes: 3, any: 2026 },
+    { dia: 28, mes: 3, any: 2026 }
 ];
 const clauUnitatVida = "unitatVidaSeleccionada";
+const clauModeAniversari = "modeAniversariActivat";
 const dataNaixement = new Date(any_naix, mes_naix - 1, dia_naix);
 const colorsConfetti = ["#ef4444", "#f59e0b", "#facc15", "#22c55e", "#3b82f6", "#a855f7", "#ec4899"];
 const unitatsVida = {
@@ -213,9 +296,22 @@ function carregarUnitatVida(){
     }
 }
 
+function carregarModeAniversari(){
+    const modeGuardat = localStorage.getItem(clauModeAniversari);
+    const modeActivat = modeGuardat === null ? true : modeGuardat === "true";
+
+    document.getElementById("modeAniversari").checked = modeActivat;
+
+    if(modeGuardat === null){
+        localStorage.setItem(clauModeAniversari, "true");
+    }
+}
+
 function esDiaTestingAniversari(data){
     return diesTestingAniversari.some(function(diaTesting){
-        return data.getDate() === diaTesting.dia && (data.getMonth() + 1) === diaTesting.mes;
+        return data.getDate() === diaTesting.dia &&
+            (data.getMonth() + 1) === diaTesting.mes &&
+            data.getFullYear() === diaTesting.any;
     });
 }
 
@@ -263,32 +359,47 @@ function actualitzar(){
     const unitatSeleccionada = document.getElementById("unitatVida").value;
     const tempsViscutMs = ara - dataNaixement;
     const valorVida = tempsViscutMs / unitatsVida[unitatSeleccionada].ms;
-    const esAniversariReal = ara.getDate() === dia_naix && (ara.getMonth() + 1) === mes_naix;
-    const esAniversariTesting = esDiaTestingAniversari(ara);
+    const modeAniversariActivat = document.getElementById("modeAniversari").checked;
+    const esAniversari = modeAniversariActivat;
 
     document.getElementById("tempsVida").innerHTML =
     `<span class="numero">${formatVida(valorVida, unitatSeleccionada)}</span> <span class="unitat">${unitatsVida[unitatSeleccionada].etiqueta}</span>`;
 
-    if(esAniversariReal || esAniversariTesting){
+    if(esAniversari){
         let edat = ara.getFullYear() - any_naix;
         const cumpleAny = new Date(ara.getFullYear(), mes_naix - 1, dia_naix);
 
         if(ara < cumpleAny) edat--;
 
         document.body.classList.add("aniversari");
+        document.getElementById("contador").innerHTML = "";
         document.getElementById("felicitat").innerHTML =
-        `&#127881; <strong>MOLTISSIMES FELICITATS MAMA!</strong> &#127874;<br><strong>Avui fas ${edat} anys!</strong> &#129395;`;
+        `&#127881; <strong>MOLTISSIMES FELICITATS MAMA!</strong> &#127874;<br><strong>Avui fas ${edat} anys!</strong> &#129395;<span class="petit">Gaudeix molt d'aquest aniversari tan especial.</span>`;
     } else {
+        document.getElementById("contador").innerHTML =
+        `
+        <span class="numero">${dies}</span> <span class="unitat">dies</span>
+        <span class="numero">${format(hores)}</span> <span class="unitat">hores</span>
+        <span class="numero">${format(minuts)}</span> <span class="unitat">minuts</span>
+        <span class="numero">${format(segons)}</span> <span class="unitat">segons</span>
+        `;
+
         document.body.classList.remove("aniversari");
         document.getElementById("felicitat").innerHTML = "";
     }
 }
 
 carregarUnitatVida();
+carregarModeAniversari();
 prepararConfetti();
 
 document.getElementById("unitatVida").addEventListener("change", function(){
     localStorage.setItem(clauUnitatVida, this.value);
+    actualitzar();
+});
+
+document.getElementById("modeAniversari").addEventListener("change", function(){
+    localStorage.setItem(clauModeAniversari, this.checked);
     actualitzar();
 });
 
